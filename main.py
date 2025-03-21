@@ -1,8 +1,9 @@
 from flask import Flask
-from flask import render_template
+from flask import render_template,url_for
 from flask import request
 from flask import redirect
 import user_management as dbHandler
+import re
 
 # Code snippet for logging a message
 # app.logger.critical("message")
@@ -33,6 +34,8 @@ def signup():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
+        if isStrongPassword(password) == False:
+            return redirect(url_for("signup"))
         DoB = request.form["dob"]
         dbHandler.insertUser(username, password, DoB)
         return render_template("/index.html")
@@ -58,6 +61,21 @@ def home():
     else:
         return render_template("/index.html")
 
+def isStrongPassword(password):
+    if len(password) < 8 and len(password) > 20:
+        return False
+    if not re.search(r"[A..z]", password):
+        return False
+    if not re.search(r"[a..z]", password):
+        return False
+    if not re.search(r"[0..9]", password):
+        return False
+    if not re.search(r"[@$!%?&#]", password):
+        return False
+    if not re.search(r"[ ]", password):
+        return False
+    else:
+        return True
 
 if __name__ == "__main__":
     app.config["TEMPLATES_AUTO_RELOAD"] = True
