@@ -1,0 +1,4 @@
+[x] Hash passwords
+[ ] Prevent Cross-site request forgery
+[ ] santise inputs
+[!] check for strong passwords

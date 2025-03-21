@@ -1,42 +1,42 @@
 import sqlite3 as sql
 import time
 import random
+import hashlib
+import uuid
 
 
 def insertUser(username, password, DoB):
     con = sql.connect("database_files/database.db")
     cur = con.cursor()
+    salt, hashed_password = hashPassword(password)
     cur.execute(
-        "INSERT INTO users (username,password,dateOfBirth) VALUES (?,?,?)",
-        (username, password, DoB),
+        "INSERT INTO users (username, salt, password, dateOfBirth) VALUES (?,?,?,?)",
+        (username, salt, hashed_password, DoB),
     )
     con.commit()
     con.close()
 
 
+# ! finds the hash and its salt stored for username and compares the new password + salt with the hash
 def retrieveUsers(username, password):
     con = sql.connect("database_files/database.db")
     cur = con.cursor()
-    cur.execute(f"SELECT * FROM users WHERE username = '{username}'")
-    if cur.fetchone() == None:
+
+    cur.execute("SELECT salt, password FROM users WHERE username = ?", (username,))
+    result = cur.fetchone()
+
+    if result is None:
         con.close()
-        return False
-    else:
-        cur.execute(f"SELECT * FROM users WHERE password = '{password}'")
-        # Plain text log of visitor count as requested by Unsecure PWA management
-        with open("visitor_log.txt", "r") as file:
-            number = int(file.read().strip())
-            number += 1
-        with open("visitor_log.txt", "w") as file:
-            file.write(str(number))
-        # Simulate response time of heavy app for testing purposes
-        time.sleep(random.randint(80, 90) / 1000)
-        if cur.fetchone() == None:
-            con.close()
-            return False
-        else:
-            con.close()
-            return True
+        return False  
+
+    stored_salt, stored_hash = result
+    
+    encoded_password = (password + stored_salt).encode('utf-8')
+    hashed_password = hashlib.sha512(encoded_password).hexdigest()
+
+    con.close()
+    return hashed_password == stored_hash 
+
 
 
 def insertFeedback(feedback):
@@ -58,3 +58,12 @@ def listFeedback():
         f.write(f"{row[1]}\n")
         f.write("</p>\n")
     f.close()
+    
+# ! used for hashing passwords
+def hashPassword(password):
+    salt = uuid.uuid4().hex 
+    encoded_password = (password + salt).encode('utf-8') 
+    hashed_password = hashlib.sha512(encoded_password).hexdigest()
+    print(hashed_password)
+    print(salt)
+    return salt, hashed_password
