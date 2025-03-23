@@ -1,8 +1,10 @@
 [x] Hash passwords
 [x] Prevent Cross-site request forgery
-[x] santise inputs
+[x] Santise inputs
 [x] SQL injection
 [x] check for strong passwords
 [x] content security policy
 [x] check usernames for existance
-[!] 2FA
+[ ] 2FA
+[x] Rate limiting
+[ ] Check ZAP
