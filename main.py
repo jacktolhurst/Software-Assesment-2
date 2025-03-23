@@ -29,12 +29,16 @@ ALLOWED_DOMAINS = [
 def addCSPHeader(response):
     csp_policy = (
         "default-src 'self'; "
-        "script-src 'self' https://192.168.1.37:3000 https://getfreebootstrap.ru; "
-        "style-src 'self' https://fonts.googleapis.com https://getfreebootstrap.ru; "
+        "script-src 'self'; "
+        "style-src 'self' https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com; "
         "img-src 'self'; "
-        "connect-src 'self';"
+        "connect-src 'self'; "
+        "object-src 'none'; "
+        "frame-ancestors 'none'; "
         "report-to /csp-violation-report-endpoint;"
+        "Content-Security-Policy: upgrade-insecure-requests;"
+        "report-to csp-endpoint;"
     )
     response.headers['Content-Security-Policy'] = csp_policy
     response.headers["X-Frame-Options"] = "DENY"
