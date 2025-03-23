@@ -24,13 +24,16 @@ limiter = Limiter(
 def addCSPHeader(response):
     csp_policy = (
         "default-src 'self'; "
-        "script-src 'self' http://192.168.1.37:3000 https://getfreebootstrap.ru; "
+        "script-src 'self' https://192.168.1.37:3000 https://getfreebootstrap.ru; "
         "style-src 'self' https://fonts.googleapis.com https://getfreebootstrap.ru; "
         "font-src 'self' https://fonts.gstatic.com; "
         "img-src 'self'; "
         "connect-src 'self';"
+        "report-uri /csp-violation-report-endpoint;"
+        "script-src 'self' 'strict-dynamic';"
     )
     response.headers['Content-Security-Policy'] = csp_policy
+    response.headers["X-Frame-Options"] = "DENY"
     return response
 
 @app.route("/success.html", methods=["POST", "GET"])
