@@ -14,6 +14,19 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = 'fansonly122'
 csrf = CSRFProtect(app)
 
+@app.after_request
+def addCSPHeader(response):
+    csp_policy = (
+        "default-src 'self'; "
+        "script-src 'self' http://192.168.1.37:3000 https://getfreebootstrap.ru; "
+        "style-src 'self' https://fonts.googleapis.com https://getfreebootstrap.ru; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self'; "
+        "connect-src 'self';"
+    )
+    response.headers['Content-Security-Policy'] = csp_policy
+    return response
+
 @app.route("/success.html", methods=["POST", "GET", "PUT", "PATCH", "DELETE"])
 @csrf.exempt
 def addFeedback():

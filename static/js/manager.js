@@ -27,7 +27,7 @@ function CheckInputs() {
       btn.style.color = "grey";
     }
   } else {
-    text.textContent = "Must be a vaild username";
+    text.textContent = "This username already exists";
     btn.disabled = true;
     btn.style.cursor = "default";
     btn.style.color = "grey";

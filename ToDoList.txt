@@ -3,3 +3,4 @@
 [x] santise inputs
 [x] SQL injection
 [x] check for strong passwords
+[!] content security policy
