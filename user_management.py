@@ -42,7 +42,7 @@ def retrieveUsers(username, password):
 def insertFeedback(feedback):
     con = sql.connect("database_files/database.db")
     cur = con.cursor()
-    cur.execute(f"INSERT INTO feedback (feedback) VALUES ('{feedback}')")
+    cur.execute("INSERT INTO feedback (feedback) VALUES (?)", (feedback,))
     con.commit()
     con.close()
 
@@ -52,13 +52,8 @@ def listFeedback():
     cur = con.cursor()
     data = cur.execute("SELECT * FROM feedback").fetchall()
     con.close()
-    f = open("templates/partials/success_feedback.html", "w")
-    for row in data:
-        f.write("<p>\n")
-        f.write(f"{row[1]}\n")
-        f.write("</p>\n")
-    f.close()
-    
+    return data
+
 # ! used for hashing passwords
 def hashPassword(password):
     salt = uuid.uuid4().hex 

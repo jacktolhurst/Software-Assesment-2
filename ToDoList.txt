@@ -1,5 +1,5 @@
 [x] Hash passwords
-[!] Prevent Cross-site request forgery
+[x] Prevent Cross-site request forgery
 [x] santise inputs
 [x] SQL injection
 [x] check for strong passwords

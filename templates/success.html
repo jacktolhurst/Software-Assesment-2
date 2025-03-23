@@ -20,5 +20,6 @@
 <hr />
 <br />
 <h1>Others feedback</h1>
-<div>{% include "partials/success_feedback.html" %}</div>
-{% endblock %}
+{% for feedback in feedback_data %}
+<p>{{ feedback[1] | unsantiseHTML }}</p>
+{% endfor %} {% endblock %}

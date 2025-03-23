@@ -14,7 +14,6 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = 'fansonly122'
 csrf = CSRFProtect(app)
 
-
 @app.route("/success.html", methods=["POST", "GET", "PUT", "PATCH", "DELETE"])
 @csrf.exempt
 def addFeedback():
@@ -24,11 +23,10 @@ def addFeedback():
     if request.method == "POST":
         feedback = santiseHTML(request.form["feedback"])
         dbHandler.insertFeedback(feedback)
-        dbHandler.listFeedback()
-        return render_template("/success.html", state=True, value="Back")
-    else:
-        dbHandler.listFeedback()
-        return render_template("/success.html", state=True, value="Back")
+    
+    feedback_data = dbHandler.listFeedback() 
+    return render_template("/success.html", state=True, value="Back", feedback_data=feedback_data)
+
 
 
 @app.route("/signup.html", methods=["POST", "GET", "PUT", "PATCH", "DELETE"])
@@ -58,7 +56,8 @@ def home():
         isLoggedIn = dbHandler.retrieveUsers(username, password)
         if isLoggedIn:
             dbHandler.listFeedback()
-            return render_template("/success.html", value=username, state=isLoggedIn)
+            feedback_data = dbHandler.listFeedback() 
+            return render_template("/success.html", value=username, state=isLoggedIn, feedback_data=feedback_data)
         else:
             return render_template("/index.html")
     else:
@@ -66,6 +65,10 @@ def home():
 
 def santiseHTML(text):
     return html.escape(text)
+
+@app.template_filter('unsantiseHTML')
+def unsantiseHTML(text):
+    return html.unescape(text)
 
 if __name__ == "__main__":
     app.config["TEMPLATES_AUTO_RELOAD"] = True
