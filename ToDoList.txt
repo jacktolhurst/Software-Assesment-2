@@ -4,4 +4,5 @@
 [x] SQL injection
 [x] check for strong passwords
 [x] content security policy
-[!] check usernames for existance
+[x] check usernames for existance
+[!] 2FA
