@@ -1,9 +1,10 @@
 from flask import Flask, render_template,url_for, jsonify, request, redirect
 from flask_wtf.csrf import CSRFProtect
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+# from flask_limiter import Limiter
+# from flask_limiter.util import get_remote_address
 import user_management as dbHandler
 import html
+from urllib.parse import urlparse, urljoin
 
 
 
@@ -13,12 +14,16 @@ import html
 app = Flask(__name__)
 app.config["SECRET_KEY"] = 'fansonly122'
 csrf = CSRFProtect(app)
-limiter = Limiter(
-    get_remote_address,
-    app=app,
-    default_limits=["200 per day", "50 per hour"],
-    storage_uri="memory://",
-)
+# limiter = Limiter(
+#     get_remote_address,
+#     app=app,
+#     default_limits=["200 per day", "50 per hour"],
+#     storage_uri="memory://",
+# )
+ALLOWED_DOMAINS = [
+    "127.0.0.1:3000", 
+    "172.20.10.4:3000" 
+]
 
 @app.after_request
 def addCSPHeader(response):
@@ -29,8 +34,7 @@ def addCSPHeader(response):
         "font-src 'self' https://fonts.gstatic.com; "
         "img-src 'self'; "
         "connect-src 'self';"
-        "report-uri /csp-violation-report-endpoint;"
-        "script-src 'self' 'strict-dynamic';"
+        "report-to /csp-violation-report-endpoint;"
     )
     response.headers['Content-Security-Policy'] = csp_policy
     response.headers["X-Frame-Options"] = "DENY"
@@ -38,10 +42,12 @@ def addCSPHeader(response):
 
 @app.route("/success.html", methods=["POST", "GET"])
 @csrf.exempt
-@limiter.limit("0.5/second", override_defaults=False)
+# @limiter.limit("0.5/second", override_defaults=False)
 def addFeedback():
     if request.method == "GET" and request.args.get("url"):
         url = request.args.get("url", "")
+        if not isSafeURL(url):
+            return "Forbidden redirect!", 403
         return redirect(url, code=302)
     if request.method == "POST":
         feedback = santiseHTML(request.form["feedback"])
@@ -53,10 +59,12 @@ def addFeedback():
 
 
 @app.route("/signup.html", methods=["POST", "GET"])
-@limiter.limit("0.1/second", override_defaults=False)
+# @limiter.limit("0.1/second", override_defaults=False)
 def signup():
     if request.method == "GET" and request.args.get("url"):
         url = request.args.get("url", "")
+        if not isSafeURL(url):
+            return "Forbidden redirect!", 403
         return redirect(url, code=302)
     if request.method == "POST":
         username = request.form["username"]
@@ -70,10 +78,12 @@ def signup():
 
 @app.route("/index.html", methods=["POST", "GET"])
 @app.route("/", methods=["POST", "GET"])
-@limiter.limit("1/second", methods=["POST", "GET"], override_defaults=False)
+# @limiter.limit("1/second", methods=["POST", "GET"], override_defaults=False)
 def home():
     if request.method == "GET" and request.args.get("url"):
         url = request.args.get("url", "")
+        if not isSafeURL(url):
+            return "Forbidden redirect!", 403
         return redirect(url, code=302)
     if request.method == "POST":
         username = request.form["username"]
@@ -88,8 +98,8 @@ def home():
     else:
         return render_template("/index.html")
 
-@limiter.limit("3/second", override_defaults=False)
 @app.route('/checkDB', methods=['GET'])
+# @limiter.limit("3/second", override_defaults=False)
 def checkDatabase():
     search_string = request.args.get("username", "")
 
@@ -104,6 +114,14 @@ def checkDatabase():
         result = False
 
     return jsonify({'result': result})
+
+def isSafeURL(url):
+    print("URL passed:", url)
+    base_url = "http://127.0.0.1:3000"  
+    full_url = urljoin(base_url, url)
+
+    parsed_url = urlparse(full_url)
+    return parsed_url.netloc in ALLOWED_DOMAINS
 
 def santiseHTML(text):
     return html.escape(text)

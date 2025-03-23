@@ -8,3 +8,4 @@
 [ ] 2FA
 [x] Rate limiting
 [!] Check ZAP
+[ ] Error handelling
