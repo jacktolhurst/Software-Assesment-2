@@ -5,38 +5,41 @@ async function CheckInputs() {
   var btn = document.getElementById("btn");
 
   if (username.value.length >= 4) {
-    if (!(await IsPreExistingUsername(username.value))) {
-      if (IsStrongPassword(password.value)) {
-        if (IsValidDate(DOB.value)) {
-          text.textContent = "";
-          btn.disabled = false;
-          btn.style.cursor = "pointer";
-          btn.style.color = "black";
+    if (username.value.length <= 20) {
+      if (!(await IsPreExistingUsername(username.value))) {
+        if (IsStrongPassword(password.value)) {
+          if (IsValidDate(DOB.value)) {
+            text.textContent = "";
+            btn.disabled = false;
+            btn.style.cursor = "pointer";
+            btn.style.color = "black";
+          } else {
+            text.textContent = "Date must be in a DD/MM/YYYY format";
+            GreyOutButton(btn);
+          }
         } else {
-          text.textContent = "Date must be in a DD/MM/YYYY format";
-          btn.disabled = true;
-          btn.style.cursor = "default";
-          btn.style.color = "grey";
+          text.textContent =
+            "A password must be at least 8 letters, have one capital letter and one special character";
+          GreyOutButton(btn);
         }
       } else {
-        text.textContent =
-          "A password must be at least 8 letters, have one capital letter and one special character";
-        btn.disabled = true;
-        btn.style.cursor = "default";
-        btn.style.color = "grey";
+        text.textContent = "This username is already in use";
+        GreyOutButton(btn);
       }
     } else {
-      text.textContent = "This username is already in use";
-      btn.disabled = true;
-      btn.style.cursor = "default";
-      btn.style.color = "grey";
+      text.textContent = "This username is too long";
+      GreyOutButton(btn);
     }
   } else {
     text.textContent = "This username is too short";
-    btn.disabled = true;
-    btn.style.cursor = "default";
-    btn.style.color = "grey";
+    GreyOutButton(btn);
   }
+}
+
+function GreyOutButton(btn) {
+  btn.disabled = true;
+  btn.style.cursor = "default";
+  btn.style.color = "grey";
 }
 
 function IsStrongPassword(password) {
