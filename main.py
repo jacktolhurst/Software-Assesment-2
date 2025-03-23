@@ -2,6 +2,7 @@ from flask import Flask
 from flask import render_template,url_for
 from flask import request
 from flask import redirect
+from flask_wtf.csrf import CSRFProtect
 import user_management as dbHandler
 import re
 import html
@@ -10,9 +11,12 @@ import html
 # app.logger.critical("message")
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = 'fansonly122'
+csrf = CSRFProtect(app)
 
 
 @app.route("/success.html", methods=["POST", "GET", "PUT", "PATCH", "DELETE"])
+@csrf.exempt
 def addFeedback():
     if request.method == "GET" and request.args.get("url"):
         url = request.args.get("url", "")
