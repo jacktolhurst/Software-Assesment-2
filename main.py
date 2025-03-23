@@ -1,5 +1,5 @@
 from flask import Flask
-from flask import render_template,url_for
+from flask import render_template,url_for, jsonify
 from flask import request
 from flask import redirect
 from flask_wtf.csrf import CSRFProtect
@@ -75,6 +75,23 @@ def home():
             return render_template("/index.html")
     else:
         return render_template("/index.html")
+
+
+@app.route('/checkDB', methods=['GET'])
+def checkDatabase():
+    search_string = request.args.get("username", "")
+
+    if search_string:
+        user_exists = dbHandler.checkUserExists(search_string)
+        
+        if user_exists:
+            result = True
+        else:
+            result = False
+    else:
+        result = False
+
+    return jsonify({'result': result})
 
 def santiseHTML(text):
     return html.escape(text)

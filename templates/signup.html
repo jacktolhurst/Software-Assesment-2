@@ -3,6 +3,7 @@
 <form action="/signup.html" method="POST" class="box">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
   <script src="../static/js/manager.js"></script>
+  <script src="{{ url_for('static', filename='js/manager.js') }}"></script>
   <div class="input__wrapper">
     <input
       type="text"

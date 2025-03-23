@@ -1,33 +1,38 @@
-let text;
-
-function CheckInputs() {
+async function CheckInputs() {
   var username = document.getElementById("username");
   var password = document.getElementById("password");
   var DOB = document.getElementById("DOB");
   var btn = document.getElementById("btn");
 
-  if (username.value != "") {
-    if (IsStrongPassword(password.value)) {
-      if (IsValidDate(DOB.value)) {
-        text.textContent = "";
-        btn.disabled = false;
-        btn.style.cursor = "pointer";
-        btn.style.color = "black";
+  if (username.value.length >= 4) {
+    if (!(await IsPreExistingUsername(username.value))) {
+      if (IsStrongPassword(password.value)) {
+        if (IsValidDate(DOB.value)) {
+          text.textContent = "";
+          btn.disabled = false;
+          btn.style.cursor = "pointer";
+          btn.style.color = "black";
+        } else {
+          text.textContent = "Date must be in a DD/MM/YYYY format";
+          btn.disabled = true;
+          btn.style.cursor = "default";
+          btn.style.color = "grey";
+        }
       } else {
-        text.textContent = "Date must be in a DD/MM/YYYY format";
+        text.textContent =
+          "A password must be at least 8 letters, have one capital letter and one special character";
         btn.disabled = true;
         btn.style.cursor = "default";
         btn.style.color = "grey";
       }
     } else {
-      text.textContent =
-        "A password must be at least 8 letters, have one capital letter and one special character";
+      text.textContent = "This username is already in use";
       btn.disabled = true;
       btn.style.cursor = "default";
       btn.style.color = "grey";
     }
   } else {
-    text.textContent = "This username already exists";
+    text.textContent = "This username is too short";
     btn.disabled = true;
     btn.style.cursor = "default";
     btn.style.color = "grey";
@@ -67,6 +72,18 @@ function IsValidDate(dateString) {
     date.getDate() === day &&
     date.getFullYear() === year
   );
+}
+
+function IsPreExistingUsername(username) {
+  return fetch(`/checkDB?username=${username}`)
+    .then((response) => response.json())
+    .then((data) => {
+      return data.result;
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      return false;
+    });
 }
 
 document.addEventListener("DOMContentLoaded", function () {
