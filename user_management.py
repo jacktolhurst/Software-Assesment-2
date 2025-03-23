@@ -64,6 +64,4 @@ def hashPassword(password):
     salt = uuid.uuid4().hex 
     encoded_password = (password + salt).encode('utf-8') 
     hashed_password = hashlib.sha512(encoded_password).hexdigest()
-    print(hashed_password)
-    print(salt)
     return salt, hashed_password

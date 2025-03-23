@@ -4,6 +4,7 @@ from flask import request
 from flask import redirect
 import user_management as dbHandler
 import re
+import html
 
 # Code snippet for logging a message
 # app.logger.critical("message")
@@ -17,7 +18,7 @@ def addFeedback():
         url = request.args.get("url", "")
         return redirect(url, code=302)
     if request.method == "POST":
-        feedback = request.form["feedback"]
+        feedback = santiseHTML(request.form["feedback"])
         dbHandler.insertFeedback(feedback)
         dbHandler.listFeedback()
         return render_template("/success.html", state=True, value="Back")
@@ -34,8 +35,6 @@ def signup():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-        if isStrongPassword(password) == False:
-            return redirect(url_for("signup"))
         DoB = request.form["dob"]
         dbHandler.insertUser(username, password, DoB)
         return render_template("/index.html")
@@ -61,21 +60,8 @@ def home():
     else:
         return render_template("/index.html")
 
-def isStrongPassword(password):
-    if len(password) < 8 and len(password) > 20:
-        return False
-    if not re.search(r"[A..z]", password):
-        return False
-    if not re.search(r"[a..z]", password):
-        return False
-    if not re.search(r"[0..9]", password):
-        return False
-    if not re.search(r"[@$!%?&#]", password):
-        return False
-    if not re.search(r"[ ]", password):
-        return False
-    else:
-        return True
+def santiseHTML(text):
+    return html.escape(text)
 
 if __name__ == "__main__":
     app.config["TEMPLATES_AUTO_RELOAD"] = True
