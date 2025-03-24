@@ -3,8 +3,9 @@ from flask_wtf.csrf import CSRFProtect
 # from flask_limiter import Limiter
 # from flask_limiter.util import get_remote_address
 import user_management as dbHandler
-import html
 from urllib.parse import urlparse, urljoin
+import html
+import re
 
 
 
@@ -36,9 +37,6 @@ def addCSPHeader(response):
         "connect-src 'self'; "
         "object-src 'none'; "
         "frame-ancestors 'none'; "
-        "report-to /csp-violation-report-endpoint;"
-        "Content-Security-Policy: upgrade-insecure-requests;"
-        "report-to csp-endpoint;"
     )
     response.headers['Content-Security-Policy'] = csp_policy
     response.headers["X-Frame-Options"] = "DENY"
@@ -120,7 +118,9 @@ def checkDatabase():
     return jsonify({'result': result})
 
 def isSafeURL(url):
-    print("URL passed:", url)
+    if not re.match(r"^[a-zA-Z0-9:/._-]+$", url):
+        return False
+    
     base_url = "http://127.0.0.1:3000"  
     full_url = urljoin(base_url, url)
 
