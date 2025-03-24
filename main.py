@@ -1,7 +1,7 @@
 from flask import Flask, render_template,url_for, jsonify, request, redirect
 from flask_wtf.csrf import CSRFProtect
-# from flask_limiter import Limiter
-# from flask_limiter.util import get_remote_address
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import user_management as dbHandler
 from urllib.parse import urlparse, urljoin
 import html
@@ -14,13 +14,17 @@ import re
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = 'fansonly122'
+app.config.update(
+    SESSION_COOKIE_SAMESITE="Lax", 
+    SESSION_COOKIE_SECURE=True  
+)
 csrf = CSRFProtect(app)
-# limiter = Limiter(
-#     get_remote_address,
-#     app=app,
-#     default_limits=["200 per day", "50 per hour"],
-#     storage_uri="memory://",
-# )
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
+)
 ALLOWED_DOMAINS = [
     "127.0.0.1:3000", 
     "172.20.10.4:3000" 
@@ -40,11 +44,13 @@ def addCSPHeader(response):
     )
     response.headers['Content-Security-Policy'] = csp_policy
     response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers.pop("Server", None)
     return response
 
 @app.route("/success.html", methods=["POST", "GET"])
 @csrf.exempt
-# @limiter.limit("0.5/second", override_defaults=False)
+@limiter.limit("0.5/second", override_defaults=False)
 def addFeedback():
     if request.method == "GET" and request.args.get("url"):
         url = request.args.get("url", "")
@@ -61,7 +67,7 @@ def addFeedback():
 
 
 @app.route("/signup.html", methods=["POST", "GET"])
-# @limiter.limit("0.1/second", override_defaults=False)
+@limiter.limit("0.1/second", override_defaults=False)
 def signup():
     if request.method == "GET" and request.args.get("url"):
         url = request.args.get("url", "")
@@ -80,7 +86,7 @@ def signup():
 
 @app.route("/index.html", methods=["POST", "GET"])
 @app.route("/", methods=["POST", "GET"])
-# @limiter.limit("1/second", methods=["POST", "GET"], override_defaults=False)
+@limiter.limit("1/second", methods=["POST", "GET"], override_defaults=False)
 def home():
     if request.method == "GET" and request.args.get("url"):
         url = request.args.get("url", "")
@@ -101,7 +107,7 @@ def home():
         return render_template("/index.html")
 
 @app.route('/checkDB', methods=['GET'])
-# @limiter.limit("3/second", override_defaults=False)
+@limiter.limit("3/second", override_defaults=False)
 def checkDatabase():
     search_string = request.args.get("username", "")
 
