@@ -5,7 +5,5 @@
 [x] check for strong passwords
 [x] content security policy
 [x] check usernames for existance
-[ ] 2FA
 [x] Rate limiting
-[!] Check ZAP
-[ ] Error handelling
+[x] Check ZAP

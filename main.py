@@ -1,4 +1,4 @@
-from flask import Flask, render_template,url_for, jsonify, request, redirect
+from flask import Flask, render_template,url_for, jsonify, request, redirect, send_from_directory
 from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -34,7 +34,7 @@ ALLOWED_DOMAINS = [
 def addCSPHeader(response):
     csp_policy = (
         "default-src 'self'; "
-        "script-src 'self'; "
+        "script-src 'self'  https://127.0.0.1:3000; "
         "style-src 'self' https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com; "
         "img-src 'self'; "
@@ -47,6 +47,10 @@ def addCSPHeader(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers.pop("Server", None)
     return response
+
+@app.route('/static/js/<path:filename>')
+def serve_js(filename):
+    return send_from_directory('static/js', filename, mimetype='application/javascript;charset=utf-8')
 
 @app.route("/success.html", methods=["POST", "GET"])
 @csrf.exempt
@@ -78,15 +82,17 @@ def signup():
         username = request.form["username"]
         password = request.form["password"]
         DoB = request.form["dob"]
-        dbHandler.insertUser(username, password, DoB)
-        return render_template("/index.html")
+        if dbHandler.insertUser(username, password, DoB):
+            return render_template("/success.html")
+        else:
+            return render_template("/signup.html")
     else:
         return render_template("/signup.html")
 
 
 @app.route("/index.html", methods=["POST", "GET"])
 @app.route("/", methods=["POST", "GET"])
-@limiter.limit("1/second", methods=["POST", "GET"], override_defaults=False)
+@limiter.limit("5/second", methods=["POST", "GET"], override_defaults=False)
 def home():
     if request.method == "GET" and request.args.get("url"):
         url = request.args.get("url", "")
@@ -107,13 +113,12 @@ def home():
         return render_template("/index.html")
 
 @app.route('/checkDB', methods=['GET'])
-@limiter.limit("3/second", override_defaults=False)
+@limiter.limit("20/second", override_defaults=False)
 def checkDatabase():
     search_string = request.args.get("username", "")
 
     if search_string:
         user_exists = dbHandler.checkUserExists(search_string)
-        
         if user_exists:
             result = True
         else:
@@ -124,14 +129,18 @@ def checkDatabase():
     return jsonify({'result': result})
 
 def isSafeURL(url):
-    if not re.match(r"^[a-zA-Z0-9:/._-]+$", url):
+    try:
+        parsed_url = urlparse(url)
+        if parsed_url.netloc and parsed_url.netloc not in ALLOWED_DOMAINS:
+            return False  
+        if parsed_url.scheme and parsed_url.scheme not in ["http", "https"]:
+            return False  
+        if re.search(r"[^\w\-/.:]", url):  
+            return False  
+        
+        return True 
+    except Exception:
         return False
-    
-    base_url = "http://127.0.0.1:3000"  
-    full_url = urljoin(base_url, url)
-
-    parsed_url = urlparse(full_url)
-    return parsed_url.netloc in ALLOWED_DOMAINS
 
 def santiseHTML(text):
     return html.escape(text)
@@ -143,4 +152,4 @@ def unsantiseHTML(text):
 if __name__ == "__main__":
     app.config["TEMPLATES_AUTO_RELOAD"] = True
     app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
-    app.run(debug=True, host="0.0.0.0", port=3000)
+    app.run(debug=True, host="0.0.0.0", port=3000, ssl_context=("cert.pem", "key.pem"))

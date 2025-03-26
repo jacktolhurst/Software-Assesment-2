@@ -6,24 +6,19 @@ async function CheckInputs() {
 
   if (username.value.length >= 4) {
     if (username.value.length <= 20) {
-      if (!(await IsPreExistingUsername(username.value))) {
-        if (IsStrongPassword(password.value)) {
-          if (IsValidDate(DOB.value)) {
-            text.textContent = "";
-            btn.disabled = false;
-            btn.style.cursor = "pointer";
-            btn.style.color = "black";
-          } else {
-            text.textContent = "Date must be in a DD/MM/YYYY format";
-            GreyOutButton(btn);
-          }
+      if (IsStrongPassword(password.value)) {
+        if (!(await IsPreExistingUsername(username.value))) {
+          text.textContent = "";
+          btn.disabled = false;
+          btn.style.cursor = "pointer";
+          btn.style.color = "black";
         } else {
-          text.textContent =
-            "A password must be at least 8 letters, have one capital letter and one special character";
+          text.textContent = "This username is already in use.";
           GreyOutButton(btn);
         }
       } else {
-        text.textContent = "This username is already in use";
+        text.textContent =
+          "A password must be at least 8 letters, have one capital letter and one special character";
         GreyOutButton(btn);
       }
     } else {
@@ -59,22 +54,6 @@ function IsStrongPassword(password) {
     return false;
   }
   return true;
-}
-
-function IsValidDate(dateString) {
-  const regex = /^(0[1-9]|1[0-2])\/([0-2][0-9]|3[01])\/\d{4}$/;
-  if (!regex.test(dateString)) {
-    return false;
-  }
-
-  const [month, day, year] = dateString.split("/").map(Number);
-  const date = new Date(year, month - 1, day);
-
-  return (
-    date.getMonth() === month - 1 &&
-    date.getDate() === day &&
-    date.getFullYear() === year
-  );
 }
 
 function IsPreExistingUsername(username) {

@@ -5,16 +5,33 @@ import hashlib
 import uuid
 import sqlite3  
 
+# ! prevents race condtions by checking the database, if a race condition occurs it returns false
 def insertUser(username, password, DoB):
     con = sql.connect("database_files/database.db")
     cur = con.cursor()
     salt, hashed_password = hashPassword(password)
-    cur.execute(
-        "INSERT INTO users (username, salt, password, dateOfBirth) VALUES (?,?,?,?)",
-        (username, salt, hashed_password, DoB),
-    )
-    con.commit()
-    con.close()
+
+    try:
+        cur.execute("BEGIN TRANSACTION;")
+        
+        cur.execute(
+            "INSERT INTO users (username, salt, password, dateOfBirth) VALUES (?, ?, ?, ?)",
+            (username, salt, hashed_password, DoB),
+        )
+
+        con.commit()  
+        return True 
+
+    except sql.IntegrityError:
+        con.rollback()
+        return False 
+
+    except Exception as e: 
+        con.rollback()
+        return False
+
+    finally:
+        con.close()
 
 
 # ! finds the hash and its salt stored for username and compares the new password + salt with the hash
