@@ -1,3 +1,7 @@
+# NOTE is the symbol for a significant finding, inspecific from new or old functionality
+# ! is the symbol for new functionality
+# * is for precreated things
+
 from flask import Flask, render_template,url_for, jsonify, request, redirect, send_from_directory
 from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
@@ -13,23 +17,30 @@ import re
 # app.logger.critical("message")
 
 app = Flask(__name__)
+
+# ! session information
 app.config["SECRET_KEY"] = 'fansonly122'
 app.config.update(
     SESSION_COOKIE_SAMESITE="Lax", 
     SESSION_COOKIE_SECURE=True  
 )
 csrf = CSRFProtect(app)
+
+# ! flask limiter for limiting requests
 limiter = Limiter(
     get_remote_address,
     app=app,
     default_limits=["200 per day", "50 per hour"],
     storage_uri="memory://",
 )
+
+# ! a list of allowed domains for invalid forwarding and redirecting
 ALLOWED_DOMAINS = [
     "127.0.0.1:3000", 
     "172.20.10.4:3000" 
 ]
 
+# ! adds the CSP to every request
 @app.after_request
 def addCSPHeader(response):
     csp_policy = (
@@ -48,10 +59,16 @@ def addCSPHeader(response):
     response.headers.pop("Server", None)
     return response
 
+# ! lets the browser know that all entered JS files are JS files
+# NOTE does not work with app.js, don't know why
 @app.route('/static/js/<path:filename>')
 def serve_js(filename):
     return send_from_directory('static/js', filename, mimetype='application/javascript;charset=utf-8')
 
+# * the route for the feedback page
+# ! checks if the URL is safe
+# ! santises any inputs from the user as to HTML friendly
+# ! limits the amount of calls available
 @app.route("/success.html", methods=["POST", "GET"])
 @csrf.exempt
 @limiter.limit("0.5/second", override_defaults=False)
@@ -68,8 +85,10 @@ def addFeedback():
     feedback_data = dbHandler.listFeedback() 
     return render_template("/success.html", state=True, value="Back", feedback_data=feedback_data)
 
-
-
+# * the signup page
+# ! checks if the URL is safe
+# ! goes to the success page when signup, instead of the home page
+# ! limits the amount of calls available
 @app.route("/signup.html", methods=["POST", "GET"])
 @limiter.limit("0.1/second", override_defaults=False)
 def signup():
@@ -89,7 +108,9 @@ def signup():
     else:
         return render_template("/signup.html")
 
-
+# * the home/login page
+# ! checks if the URL is safe
+# ! limits the amount of calls available
 @app.route("/index.html", methods=["POST", "GET"])
 @app.route("/", methods=["POST", "GET"])
 @limiter.limit("5/second", methods=["POST", "GET"], override_defaults=False)
@@ -112,6 +133,8 @@ def home():
     else:
         return render_template("/index.html")
 
+# ! checks the database for a username string given
+# ! returns true if the user exists, false if it doesn't
 @app.route('/checkDB', methods=['GET'])
 @limiter.limit("20/second", override_defaults=False)
 def checkDatabase():
@@ -128,6 +151,8 @@ def checkDatabase():
 
     return jsonify({'result': result})
 
+# ! checks if a given url is safe
+# ! returns true if it is safe, false if it isn't
 def isSafeURL(url):
     try:
         parsed_url = urlparse(url)
@@ -142,13 +167,17 @@ def isSafeURL(url):
     except Exception:
         return False
 
+# ! uses the HTML import to return a HTML safe version of a string
 def santiseHTML(text):
     return html.escape(text)
 
+# ! uses the HTML import to return an unsecaped version of the given string
 @app.template_filter('unsantiseHTML')
 def unsantiseHTML(text):
     return html.unescape(text)
 
+# * general app startup
+# ! ssl_context gives the permission for HTTPS
 if __name__ == "__main__":
     app.config["TEMPLATES_AUTO_RELOAD"] = True
     app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0

@@ -3,8 +3,8 @@ import time
 import random
 import hashlib
 import uuid
-import sqlite3  
 
+# * inserts the user information from the signup page
 # ! prevents race condtions by checking the database, if a race condition occurs it returns false
 def insertUser(username, password, DoB):
     con = sql.connect("database_files/database.db")
@@ -33,8 +33,8 @@ def insertUser(username, password, DoB):
     finally:
         con.close()
 
-
-# ! finds the hash and its salt stored for username and compares the new password + salt with the hash
+# * retireves the user password and compares the entered one to the current one, returns true if they are the same
+# ! Since the password is hashed, it retrieves its salt and hashed password and does a hashed comparison to check
 def retrieveUsers(username, password):
     con = sql.connect("database_files/database.db")
     cur = con.cursor()
@@ -55,7 +55,8 @@ def retrieveUsers(username, password):
     return hashed_password == stored_hash 
 
 
-
+# * inserts feedback into the feedback database
+# ! feedback is entered in a SQL-injection safe way
 def insertFeedback(feedback):
     con = sql.connect("database_files/database.db")
     cur = con.cursor()
@@ -63,7 +64,7 @@ def insertFeedback(feedback):
     con.commit()
     con.close()
 
-
+# * lists the feedback from the database and returns it
 def listFeedback():
     con = sql.connect("database_files/database.db")
     cur = con.cursor()
@@ -78,17 +79,15 @@ def hashPassword(password):
     hashed_password = hashlib.sha512(encoded_password).hexdigest()
     return salt, hashed_password
 
-
+# ! purely just checks if a username exists, returns false if it doesn't exist
 def checkUserExists(username):
     try:
-        with sqlite3.connect('database_files/database.db') as con:
+        with sql.connect('database_files/database.db') as con:
             cursor = con.cursor()
             cursor.execute("SELECT * FROM users WHERE username=?", (username,))
-            result = cursor.fetchone()  # Fetch the first result (if any)
-            return result is not None  # Return True if a result is found, else False
-    except sqlite3.Error as e:
-        print(f"Database error: {e}")
+            result = cursor.fetchone()  
+            return result is not None  
+    except sql.Error as e:
         return False
     except Exception as e:
-        print(f"Error: {e}")
         return False

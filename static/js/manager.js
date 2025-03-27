@@ -1,3 +1,5 @@
+// ! goes through the elements and checks if their valid
+// ! if they are valid, then the button is cickable, if not it is greyed out
 async function CheckInputs() {
   var username = document.getElementById("username");
   var password = document.getElementById("password");
@@ -31,12 +33,14 @@ async function CheckInputs() {
   }
 }
 
+// ! simply greys out the btn given
 function GreyOutButton(btn) {
   btn.disabled = true;
   btn.style.cursor = "default";
   btn.style.color = "grey";
 }
 
+// ! when given a password, returns true if meets all requirements, and false if not
 function IsStrongPassword(password) {
   if (password.length < 8 || password.length > 20) {
     return false;
@@ -56,6 +60,8 @@ function IsStrongPassword(password) {
   return true;
 }
 
+// ! runs a get request to the flask server to check if the username exists
+// NOTE should only run when nessiasry, expesive and sensitive data retrieval
 function IsPreExistingUsername(username) {
   return fetch(`/checkDB?username=${username}`)
     .then((response) => response.json())
@@ -68,6 +74,7 @@ function IsPreExistingUsername(username) {
     });
 }
 
+// ! adds event listeners to all input fields as to call the CheckInputs() function only when needed
 document.addEventListener("DOMContentLoaded", function () {
   const inputFields = document.querySelectorAll(".input__field");
   text = document.getElementById("description_text");
