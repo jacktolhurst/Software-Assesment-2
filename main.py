@@ -11,11 +11,6 @@ from urllib.parse import urlparse, urljoin
 import html
 import re
 
-
-
-# Code snippet for logging a message
-# app.logger.critical("message")
-
 app = Flask(__name__)
 
 # ! session information
