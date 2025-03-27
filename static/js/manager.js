@@ -9,13 +9,19 @@ async function CheckInputs() {
   if (username.value.length >= 4) {
     if (username.value.length <= 20) {
       if (IsStrongPassword(password.value)) {
-        if (!(await IsPreExistingUsername(username.value))) {
-          text.textContent = "";
-          btn.disabled = false;
-          btn.style.cursor = "pointer";
-          btn.style.color = "black";
+        if (IsValidDate(DOB.value)) {
+          if (!(await IsPreExistingUsername(username.value))) {
+            text.textContent = "";
+            btn.disabled = false;
+            btn.style.cursor = "pointer";
+            btn.style.color = "black";
+          } else {
+            text.textContent = "This username is already in use.";
+            GreyOutButton(btn);
+          }
         } else {
-          text.textContent = "This username is already in use.";
+          text.textContent =
+            "Date must be older then 13 years and younger than 120";
           GreyOutButton(btn);
         }
       } else {
@@ -72,6 +78,21 @@ function IsPreExistingUsername(username) {
       console.error("Error:", error);
       return false;
     });
+}
+
+// ! checks if the date is valid and if the user is older then 13 and younger then 120
+function IsValidDate(date) {
+  newDate = new Date(date);
+  console.log(new Date().getFullYear() - 13);
+  if (newDate != "Invalid Date") {
+    if (
+      new Date().getFullYear() - 13 > newDate.getFullYear() &&
+      new Date().getFullYear() - 120 < newDate.getFullYear()
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // ! adds event listeners to all input fields as to call the CheckInputs() function only when needed
