@@ -80,7 +80,7 @@ def addFeedback():
     feedback_data = dbHandler.listFeedback() 
     return render_template("/success.html", state=True, value="Back", feedback_data=feedback_data)
 
-# * the signup page
+# * the signup page bluh bluh bulj
 # ! checks if the URL is safe
 # ! goes to the success page when signup, instead of the home page
 # ! limits the amount of calls available
